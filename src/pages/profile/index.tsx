@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, Canvas } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useInspiration } from '../../store/InspirationContext';
+import InspirationCard from '../../components/InspirationCard';
 import styles from './index.module.scss';
 
 const ProfilePage: React.FC = () => {
@@ -17,6 +18,7 @@ const ProfilePage: React.FC = () => {
   const [randomInspiration, setRandomInspiration] = useState<any>(null);
   const [canvasHeight, setCanvasHeight] = useState(800);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(null);
 
   const stats = useMemo(() => {
     const total = inspirations.length;
@@ -24,6 +26,20 @@ const ProfilePage: React.FC = () => {
     const todayInspirs = getRecentInspirations(1);
     return { total, privateCount, todayCount: todayInspirs.length };
   }, [inspirations, getRecentInspirations]);
+
+  const typeStats = useMemo(() => {
+    return {
+      voice: inspirations.filter(i => i.type === 'voice').length,
+      webpage: inspirations.filter(i => i.type === 'webpage').length,
+      image: inspirations.filter(i => i.type === 'image').length,
+      text: inspirations.filter(i => i.type === 'text').length
+    };
+  }, [inspirations]);
+
+  const typeFilteredInspirations = useMemo(() => {
+    if (!selectedTypeFilter) return [];
+    return inspirations.filter(i => i.type === selectedTypeFilter);
+  }, [inspirations, selectedTypeFilter]);
 
   const handleDailyReview = () => {
     const todayInspirs = getRecentInspirations(1);
@@ -72,6 +88,13 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleTypeFilter = (type: string | null) => {
+    setSelectedTypeFilter(type);
+    if (type) {
+      setShowModal('typeFilter');
+    }
+  };
+
   const generateShareImage = async () => {
     if (inspirations.length === 0) {
       Taro.showToast({ title: '没有灵感可分享', icon: 'none' });
@@ -86,9 +109,8 @@ const ProfilePage: React.FC = () => {
       const systemInfo = Taro.getSystemInfoSync();
       const canvasWidth = systemInfo.windowWidth * 2;
       
-      const lineHeight = 80;
       const headerHeight = 300;
-      const itemHeight = 120;
+      const itemHeight = 200;
       const padding = 40;
       const content = inspirations.slice(0, 10);
       
@@ -145,20 +167,31 @@ const ProfilePage: React.FC = () => {
 
         ctx.setFillStyle('#1E293B');
         ctx.setFontSize(24);
-        const text = insp.content.length > 25 ? insp.content.substring(0, 25) + '...' : insp.content;
+        const text = insp.content.length > 35 ? insp.content.substring(0, 35) + '...' : insp.content;
         ctx.fillText(text, padding + 60, y + 40);
 
         if (insp.tags.length > 0) {
           ctx.setFillStyle('#6366F1');
           ctx.setFontSize(18);
-          const tagsText = insp.tags.slice(0, 2).map(t => `#${t}`).join(' ');
-          ctx.fillText(tagsText, padding + 60, y + 70);
+          const tagsText = '#' + insp.tags.join(' #');
+          const displayTags = tagsText.length > 50 ? tagsText.substring(0, 50) + '...' : tagsText;
+          ctx.fillText(displayTags, padding + 60, y + 70);
         }
 
         if (insp.source) {
           ctx.setFillStyle('#94A3B8');
           ctx.setFontSize(18);
           ctx.fillText(`📍 ${insp.source}`, padding + 60, y + 95);
+        }
+
+        if (insp.project || insp.purpose || insp.mood) {
+          ctx.setFillStyle('#64748B');
+          ctx.setFontSize(16);
+          const metaParts = [];
+          if (insp.project) metaParts.push(`📁${insp.project}`);
+          if (insp.purpose) metaParts.push(`🎯${insp.purpose}`);
+          if (insp.mood) metaParts.push(insp.mood);
+          ctx.fillText(metaParts.join(' | '), padding + 60, y + 120);
         }
       });
 
@@ -210,6 +243,16 @@ const ProfilePage: React.FC = () => {
 
   const duplicates = useMemo(() => findDuplicates(), [inspirations]);
 
+  const getTypeLabel = (type: string) => {
+    const labels: { [key: string]: string } = {
+      'voice': '语音',
+      'webpage': '网页',
+      'image': '图片',
+      'text': '文字'
+    };
+    return labels[type] || type;
+  };
+
   return (
     <View className={styles.container}>
       <View class={styles.canvasContainer}>
@@ -240,6 +283,29 @@ const ProfilePage: React.FC = () => {
           <Text className={styles.statIcon}>📅</Text>
           <Text className={styles.statValue}>{stats.todayCount}</Text>
           <Text className={styles.statLabel}>今日</Text>
+        </View>
+      </View>
+
+      <View className={styles.typeStats}>
+        <View className={styles.typeCard} onClick={() => handleTypeFilter('voice')}>
+          <Text className={styles.typeIcon}>🎙️</Text>
+          <Text className={styles.typeCount}>{typeStats.voice}</Text>
+          <Text className={styles.typeLabel}>语音</Text>
+        </View>
+        <View className={styles.typeCard} onClick={() => handleTypeFilter('webpage')}>
+          <Text className={styles.typeIcon}>🔗</Text>
+          <Text className={styles.typeCount}>{typeStats.webpage}</Text>
+          <Text className={styles.typeLabel}>网页</Text>
+        </View>
+        <View className={styles.typeCard} onClick={() => handleTypeFilter('image')}>
+          <Text className={styles.typeIcon}>🖼️</Text>
+          <Text className={styles.typeCount}>{typeStats.image}</Text>
+          <Text className={styles.typeLabel}>图片</Text>
+        </View>
+        <View className={styles.typeCard} onClick={() => handleTypeFilter('text')}>
+          <Text className={styles.typeIcon}>✏️</Text>
+          <Text className={styles.typeCount}>{typeStats.text}</Text>
+          <Text className={styles.typeLabel}>文字</Text>
         </View>
       </View>
 
@@ -380,6 +446,37 @@ const ProfilePage: React.FC = () => {
                       </Text>
                     </View>
                   </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {showModal === 'typeFilter' && selectedTypeFilter && (
+        <View className={styles.modal} onClick={() => setShowModal(null)}>
+          <View className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <View className={styles.modalHeader}>
+              <Text className={styles.modalTitle}>{getTypeLabel(selectedTypeFilter)}素材</Text>
+              <Text className={styles.closeBtn} onClick={() => setShowModal(null)}>✕</Text>
+            </View>
+            <ScrollView scrollY className={styles.typeFilterList}>
+              {typeFilteredInspirations.length === 0 ? (
+                <View className={styles.empty}>
+                  <Text className={styles.emptyIcon}>📭</Text>
+                  <Text className={styles.emptyText}>还没有{getTypeLabel(selectedTypeFilter)}素材</Text>
+                </View>
+              ) : (
+                typeFilteredInspirations.map(insp => (
+                  <InspirationCard
+                    key={insp.id}
+                    inspiration={insp}
+                    onDelete={() => {
+                      deleteInspiration(insp.id);
+                      Taro.showToast({ title: '已删除', icon: 'success' });
+                    }}
+                    onTogglePrivate={() => togglePrivate(insp.id)}
+                  />
                 ))
               )}
             </ScrollView>

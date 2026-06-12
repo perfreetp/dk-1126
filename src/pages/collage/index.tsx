@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, Input, Textarea, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useInspiration } from '../../store/InspirationContext';
-import CollageGroup from '../../components/CollageGroup';
+import InspirationCard from '../../components/InspirationCard';
 import styles from './index.module.scss';
 
 const CollagePage: React.FC = () => {
@@ -11,7 +11,8 @@ const CollagePage: React.FC = () => {
     collageGroups,
     createCollageGroup,
     updateCollageGroup,
-    deleteCollageGroup
+    deleteCollageGroup,
+    togglePrivate
   } = useInspiration();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -20,6 +21,7 @@ const CollagePage: React.FC = () => {
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [selectedInspirationId, setSelectedInspirationId] = useState<string | null>(null);
+  const [showInspirationDetail, setShowInspirationDetail] = useState<string | null>(null);
 
   const toggleSelection = (id: string) => {
     setSelectedIds(prev =>
@@ -30,6 +32,10 @@ const CollagePage: React.FC = () => {
   const handleLongPress = (id: string) => {
     setSelectedInspirationId(id);
     setShowMoveModal(true);
+  };
+
+  const handleInspirationClick = (id: string) => {
+    setShowInspirationDetail(id);
   };
 
   const handleMoveToGroup = (groupId: string) => {
@@ -117,6 +123,10 @@ const CollagePage: React.FC = () => {
 
   const ungroupedInspirations = getUngroupedInspirations();
 
+  const selectedInspiration = showInspirationDetail 
+    ? inspirations.find(i => i.id === showInspirationDetail) 
+    : null;
+
   return (
     <View className={styles.container}>
       <View className={styles.header}>
@@ -126,13 +136,13 @@ const CollagePage: React.FC = () => {
 
       <View className={styles.section}>
         <Text className={styles.sectionTitle}>📌 未分组素材</Text>
-        <Text className={styles.sectionHint}>长按素材可添加到拼贴组</Text>
+        <Text className={styles.sectionHint}>点击查看详情 | 长按添加到拼贴组</Text>
         <View className={styles.inspirationsGrid}>
           {ungroupedInspirations.map(insp => (
             <View
               key={insp.id}
               className={`${styles.inspirationItem} ${selectedIds.includes(insp.id) ? styles.selected : ''}`}
-              onClick={() => toggleSelection(insp.id)}
+              onClick={() => handleInspirationClick(insp.id)}
               onLongPress={() => handleLongPress(insp.id)}
             >
               {insp.type === 'image' && insp.imageUrl ? (
@@ -213,16 +223,42 @@ const CollagePage: React.FC = () => {
         ) : (
           <View className={styles.groupsList}>
             {collageGroups.map(group => (
-              <CollageGroup
-                key={group.id}
-                group={group}
-                inspirations={inspirations}
-                onEdit={() => handleEditGroup(group.id)}
-                onDelete={() => {
-                  deleteCollageGroup(group.id);
-                  Taro.showToast({ title: '已删除', icon: 'success' });
-                }}
-              />
+              <View key={group.id} className={styles.groupContainer}>
+                <View className={styles.groupHeader}>
+                  <Text className={styles.groupName}>{group.name}</Text>
+                  <View className={styles.groupActions}>
+                    <Text className={styles.editBtn} onClick={() => handleEditGroup(group.id)}>✏️</Text>
+                    <Text className={styles.deleteBtn} onClick={() => {
+                      deleteCollageGroup(group.id);
+                      Taro.showToast({ title: '已删除', icon: 'success' });
+                    }}>🗑️</Text>
+                  </View>
+                </View>
+                <View className={styles.groupInspirations}>
+                  {group.inspirationIds.map(inspId => {
+                    const insp = inspirations.find(i => i.id === inspId);
+                    if (!insp) return null;
+                    return (
+                      <View
+                        key={insp.id}
+                        className={styles.groupInspirationItem}
+                        onClick={() => handleInspirationClick(insp.id)}
+                      >
+                        {insp.type === 'image' && insp.imageUrl ? (
+                          <Image className={styles.groupInspirationImage} src={insp.imageUrl} mode="aspectFill" />
+                        ) : (
+                          <View className={styles.groupInspirationText}>
+                            <Text>{insp.content.substring(0, 20)}</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+                {group.description && (
+                  <Text className={styles.groupDescription}>{group.description}</Text>
+                )}
+              </View>
             ))}
           </View>
         )}
@@ -243,7 +279,7 @@ const CollagePage: React.FC = () => {
                     className={styles.groupItem}
                     onClick={() => handleMoveToGroup(group.id)}
                   >
-                    <Text className={styles.groupName}>{group.name}</Text>
+                    <Text className={styles.groupItemName}>{group.name}</Text>
                     <Text className={styles.groupCount}>{group.inspirationIds.length} 条</Text>
                   </View>
                 ))}
@@ -252,6 +288,40 @@ const CollagePage: React.FC = () => {
                 + 创建新拼贴组
               </Button>
             </View>
+          </View>
+        </View>
+      )}
+
+      {showInspirationDetail && selectedInspiration && (
+        <View className={styles.modal} onClick={() => setShowInspirationDetail(null)}>
+          <View className={styles.detailModalContent} onClick={(e) => e.stopPropagation()}>
+            <View className={styles.modalHeader}>
+              <Text className={styles.modalTitle}>灵感详情</Text>
+              <Text className={styles.closeBtn} onClick={() => setShowInspirationDetail(null)}>✕</Text>
+            </View>
+            <InspirationCard
+              inspiration={selectedInspiration}
+              onDelete={() => {
+                Taro.showModal({
+                  title: '确认删除',
+                  content: '确定要删除这条灵感吗？',
+                  success: (res) => {
+                    if (res.confirm) {
+                      deleteInspiration(selectedInspiration.id);
+                      Taro.showToast({ title: '已删除', icon: 'success' });
+                      setShowInspirationDetail(null);
+                    }
+                  }
+                });
+              }}
+              onTogglePrivate={() => {
+                togglePrivate(selectedInspiration.id);
+                Taro.showToast({ 
+                  title: selectedInspiration.isPrivate ? '已公开' : '已私密', 
+                  icon: 'success' 
+                });
+              }}
+            />
           </View>
         </View>
       )}

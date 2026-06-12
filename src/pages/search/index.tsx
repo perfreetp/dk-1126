@@ -25,11 +25,29 @@ const SearchPage: React.FC = () => {
       .slice(0, 5);
   }, [inspirations]);
 
+  const getTypeFromKeyword = (keyword: string): string | null => {
+    const typeKeywords: { [key: string]: string } = {
+      '语音': 'voice',
+      '录音': 'voice',
+      '网页': 'webpage',
+      '链接': 'webpage',
+      '图片': 'image',
+      '照片': 'image',
+      '文字': 'text',
+      '文本': 'text'
+    };
+    return typeKeywords[keyword.toLowerCase()] || null;
+  };
+
   const searchResults = useMemo(() => {
     if (!keyword && selectedTags.length === 0) return [];
 
+    const typeFilter = getTypeFromKeyword(keyword);
+
     return inspirations.filter(insp => {
-      const matchKeyword = !keyword ||
+      const matchType = !typeFilter || insp.type === typeFilter;
+      
+      const matchKeyword = !keyword || typeFilter ||
         insp.content.toLowerCase().includes(keyword.toLowerCase()) ||
         insp.tags.some(tag => tag.toLowerCase().includes(keyword.toLowerCase())) ||
         (insp.project && insp.project.toLowerCase().includes(keyword.toLowerCase())) ||
@@ -38,7 +56,7 @@ const SearchPage: React.FC = () => {
       const matchTags = selectedTags.length === 0 ||
         selectedTags.every(tag => insp.tags.includes(tag));
 
-      return matchKeyword && matchTags;
+      return matchType && matchKeyword && matchTags;
     });
   }, [inspirations, keyword, selectedTags]);
 

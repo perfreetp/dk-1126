@@ -139,21 +139,26 @@ const ProfilePage: React.FC = () => {
         }[insp.type] || '💡';
         ctx.fillText(typeIcon, padding + 20, y + 40);
 
+        if (insp.isPrivate) {
+          ctx.fillText('🔒', padding + canvasWidth - 60, y + 40);
+        }
+
         ctx.setFillStyle('#1E293B');
         ctx.setFontSize(24);
-        const text = insp.content.length > 30 ? insp.content.substring(0, 30) + '...' : insp.content;
+        const text = insp.content.length > 25 ? insp.content.substring(0, 25) + '...' : insp.content;
         ctx.fillText(text, padding + 60, y + 40);
 
         if (insp.tags.length > 0) {
           ctx.setFillStyle('#6366F1');
           ctx.setFontSize(18);
-          ctx.fillText(`#${insp.tags[0]}`, padding + 60, y + 70);
+          const tagsText = insp.tags.slice(0, 2).map(t => `#${t}`).join(' ');
+          ctx.fillText(tagsText, padding + 60, y + 70);
         }
 
         if (insp.source) {
           ctx.setFillStyle('#94A3B8');
           ctx.setFontSize(18);
-          ctx.fillText(`来源: ${insp.source}`, padding + 60, y + 95);
+          ctx.fillText(`📍 ${insp.source}`, padding + 60, y + 95);
         }
       });
 

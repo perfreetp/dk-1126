@@ -90,6 +90,29 @@
   color: $color-text-secondary;
 }
 
+.actionBtn.active {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  
+  .actionLabel {
+    color: $color-text-white;
+  }
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-sm;
+  background: rgba($color-primary, 0.1);
+  border-radius: $radius-button;
+  margin-top: $spacing-sm;
+}
+
+.typeBadgeText {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
 .optionsRow {
   margin-bottom: $spacing-md;
 }

@@ -32,7 +32,8 @@ const SearchPage: React.FC = () => {
       const matchKeyword = !keyword ||
         insp.content.toLowerCase().includes(keyword.toLowerCase()) ||
         insp.tags.some(tag => tag.toLowerCase().includes(keyword.toLowerCase())) ||
-        (insp.project && insp.project.toLowerCase().includes(keyword.toLowerCase()));
+        (insp.project && insp.project.toLowerCase().includes(keyword.toLowerCase())) ||
+        (insp.source && insp.source.toLowerCase().includes(keyword.toLowerCase()));
 
       const matchTags = selectedTags.length === 0 ||
         selectedTags.every(tag => insp.tags.includes(tag));

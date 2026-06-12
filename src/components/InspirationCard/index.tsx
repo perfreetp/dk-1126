@@ -31,6 +31,17 @@ const InspirationCard: React.FC<InspirationCardProps> = ({
     }
   };
 
+  const getMoodLabel = (mood: string) => {
+    const moodLabels: { [key: string]: string } = {
+      'creative': '🎨 创意',
+      'calm': '🌊 平静',
+      'energetic': '⚡ 活力',
+      'romantic': '💕 浪漫',
+      'serious': '📐 严谨'
+    };
+    return moodLabels[mood] || mood;
+  };
+
   return (
     <View className={styles.card} onClick={onClick}>
       <View className={styles.header}>
@@ -71,14 +82,19 @@ const InspirationCard: React.FC<InspirationCardProps> = ({
       <View className={styles.footer}>
         {inspiration.project && (
           <View className={styles.metaItem}>
-            <Text className={styles.metaLabel}>项目:</Text>
+            <Text className={styles.metaLabel}>📁</Text>
             <Text className={styles.metaValue}>{inspiration.project}</Text>
           </View>
         )}
         {inspiration.mood && (
           <View className={styles.metaItem}>
-            <Text className={styles.metaLabel}>情绪:</Text>
-            <Text className={styles.metaValue}>{inspiration.mood}</Text>
+            <Text className={styles.metaValue}>{getMoodLabel(inspiration.mood)}</Text>
+          </View>
+        )}
+        {inspiration.purpose && (
+          <View className={styles.metaItem}>
+            <Text className={styles.metaLabel}>🎯</Text>
+            <Text className={styles.metaValue}>{inspiration.purpose}</Text>
           </View>
         )}
         {inspiration.color && (

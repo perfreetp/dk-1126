@@ -18,6 +18,7 @@ const CollectPage: React.FC = () => {
   const [isPrivate, setIsPrivate] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [currentType, setCurrentType] = useState<'text' | 'image' | 'voice' | 'webpage'>('text');
   const recordingTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -35,9 +36,27 @@ const CollectPage: React.FC = () => {
       sourceType: ['album', 'camera'],
       success: (res) => {
         const tempFilePath = res.tempFilePaths[0];
-        setImageUrl(tempFilePath);
-        setContent('图片灵感');
-        Taro.showToast({ title: '图片已选择', icon: 'success' });
+        
+        Taro.saveFile({
+          tempFilePath: tempFilePath,
+          success: (saveRes) => {
+            const savedFilePath = saveRes.savedFilePath;
+            setImageUrl(savedFilePath);
+            setCurrentType('image');
+            if (!content) {
+              setContent('图片灵感');
+            }
+            Taro.showToast({ title: '图片已选择', icon: 'success' });
+          },
+          fail: () => {
+            setImageUrl(tempFilePath);
+            setCurrentType('image');
+            if (!content) {
+              setContent('图片灵感');
+            }
+            Taro.showToast({ title: '图片已选择', icon: 'success' });
+          }
+        });
       },
       fail: () => {
         Taro.showToast({ title: '请选择图片', icon: 'none' });
@@ -52,6 +71,7 @@ const CollectPage: React.FC = () => {
       console.log('[Collect] Recording started');
       setIsRecording(true);
       setRecordingTime(0);
+      setCurrentType('voice');
       
       recordingTimer.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
@@ -141,7 +161,7 @@ const CollectPage: React.FC = () => {
       const domain = urlObj.hostname.replace('www.', '');
       
       const mockTitles: { [key: string]: string } = {
-        'dribbble.com': 'Dribbble - Discover the World’s Top Designers',
+        'dribbble.com': 'Dribbble - Discover the World\'s Top Designers',
         'behance.net': 'Behance - Portfolio Management',
         'pinterest.com': 'Pinterest',
         'unsplash.com': 'Unsplash | Free High-Resolution Photos',
@@ -157,6 +177,7 @@ const CollectPage: React.FC = () => {
       
       setContent(title);
       setSource(sourceName);
+      setCurrentType('webpage');
       
       Taro.hideLoading();
       Taro.showToast({ title: '网页信息已获取 ✨', icon: 'success' });
@@ -175,11 +196,9 @@ const CollectPage: React.FC = () => {
       return;
     }
 
-    const inspirationType = imageUrl ? 'image' : (isRecording ? 'voice' : 'text');
-
     addInspiration({
-      type: inspirationType,
-      content: content || '图片灵感',
+      type: currentType,
+      content: content || (currentType === 'image' ? '图片灵感' : '无内容'),
       imageUrl: imageUrl || undefined,
       source: source || undefined,
       tags,
@@ -205,6 +224,7 @@ const CollectPage: React.FC = () => {
       setColor('');
       setPurpose('');
       setIsPrivate(false);
+      setCurrentType('text');
       Taro.switchTab({ url: '/pages/library/index' });
     }, 1500);
   };
@@ -234,18 +254,21 @@ const CollectPage: React.FC = () => {
           placeholderClass={styles.inputPlaceholder}
           maxlength={500}
         />
+        <View className={styles.typeBadge}>
+          <Text className={styles.typeBadgeText}>当前类型: {currentType === 'text' ? '文字' : currentType === 'image' ? '图片' : currentType === 'voice' ? '语音' : '网页'}</Text>
+        </View>
       </View>
 
       <View className={styles.card}>
         <Text className={styles.sectionTitle}>📎 添加方式</Text>
         <View className={styles.actionButtons}>
-          <Button className={styles.actionBtn} onClick={handleImageUpload}>
+          <Button className={`${styles.actionBtn} ${currentType === 'image' ? styles.active : ''}`} onClick={handleImageUpload}>
             <Text className={styles.actionIcon}>🖼️</Text>
             <Text className={styles.actionLabel}>图片</Text>
           </Button>
           
           {!isRecording ? (
-            <Button className={styles.actionBtn} onClick={startRecording}>
+            <Button className={`${styles.actionBtn} ${currentType === 'voice' ? styles.active : ''}`} onClick={startRecording}>
               <Text className={styles.actionIcon}>🎙️</Text>
               <Text className={styles.actionLabel}>录音</Text>
             </Button>
@@ -256,11 +279,11 @@ const CollectPage: React.FC = () => {
             </Button>
           )}
           
-          <Button className={styles.actionBtn} onClick={handleSaveWebpage}>
+          <Button className={`${styles.actionBtn} ${currentType === 'webpage' ? styles.active : ''}`} onClick={handleSaveWebpage}>
             <Text className={styles.actionIcon}>🔗</Text>
             <Text className={styles.actionLabel}>网页</Text>
           </Button>
-          <Button className={styles.actionBtn} onClick={() => setIsPrivate(!isPrivate)}>
+          <Button className={`${styles.actionBtn} ${isPrivate ? styles.active : ''}`} onClick={() => setIsPrivate(!isPrivate)}>
             <Text className={styles.actionIcon}>{isPrivate ? '🔒' : '🔓'}</Text>
             <Text className={styles.actionLabel}>{isPrivate ? '私密' : '公开'}</Text>
           </Button>
@@ -342,7 +365,7 @@ const CollectPage: React.FC = () => {
               <option value="">选择用途</option>
               <option value="视觉优化">🎨 视觉优化</option>
               <option value="空间设计">🏠 空间设计</option>
-              <option value="文案创作">✏️ 文案创作</option>
+              <option value="文案创作">✕ 文案创作</option>
               <option value="产品策划">📱 产品策划</option>
             </select>
           </View>

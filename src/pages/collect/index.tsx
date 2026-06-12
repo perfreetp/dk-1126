@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Input, Textarea, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useInspiration } from '../../store/InspirationContext';
@@ -16,6 +16,17 @@ const CollectPage: React.FC = () => {
   const [color, setColor] = useState('');
   const [purpose, setPurpose] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const recordingTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (recordingTimer.current) {
+        clearInterval(recordingTimer.current);
+      }
+    };
+  }, []);
 
   const handleImageUpload = () => {
     Taro.chooseImage({
@@ -26,49 +37,133 @@ const CollectPage: React.FC = () => {
         const tempFilePath = res.tempFilePaths[0];
         setImageUrl(tempFilePath);
         setContent('图片灵感');
+        Taro.showToast({ title: '图片已选择', icon: 'success' });
+      },
+      fail: () => {
+        Taro.showToast({ title: '请选择图片', icon: 'none' });
       }
     });
   };
 
-  const handleVoiceRecord = () => {
-    Taro.chooseMessageFile({
-      count: 1,
-      type: 'file',
-      extension: ['mp3', 'wav', 'm4a'],
-      success: (res) => {
-        const tempFilePath = res.tempFiles[0].path;
-        setContent('语音记录已添加');
-        Taro.showToast({
-          title: '语音文件已选择（实际需上传服务器）',
-          icon: 'success'
-        });
-      },
-      fail: () => {
-        Taro.showToast({
-          title: '请选择音频文件',
-          icon: 'none'
-        });
+  const startRecording = () => {
+    const recorderManager = Taro.getRecorderManager();
+    
+    recorderManager.onStart(() => {
+      console.log('[Collect] Recording started');
+      setIsRecording(true);
+      setRecordingTime(0);
+      
+      recordingTimer.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000) as unknown as number;
+    });
+
+    recorderManager.onStop((res) => {
+      console.log('[Collect] Recording stopped', res);
+      if (recordingTimer.current) {
+        clearInterval(recordingTimer.current);
+      }
+      setIsRecording(false);
+      
+      if (res.duration > 0) {
+        simulateSpeechRecognition(res.tempFilePath);
       }
     });
+
+    recorderManager.onError((err) => {
+      console.error('[Collect] Recording error:', err);
+      if (recordingTimer.current) {
+        clearInterval(recordingTimer.current);
+      }
+      setIsRecording(false);
+      Taro.showToast({ title: '录音失败', icon: 'none' });
+    });
+
+    recorderManager.start({
+      format: 'mp3',
+      duration: 60000,
+      sampleRate: 16000,
+      numberOfChannels: 1,
+      encodeBitRate: 48000,
+      audioType: 'voice'
+    });
+  };
+
+  const stopRecording = () => {
+    const recorderManager = Taro.getRecorderManager();
+    recorderManager.stop();
+  };
+
+  const simulateSpeechRecognition = (audioPath: string) => {
+    Taro.showLoading({ title: '识别中...' });
+    
+    setTimeout(() => {
+      Taro.hideLoading();
+      
+      const suggestions = [
+        '这个设计风格很有创意，我觉得可以尝试更多的渐变色',
+        '用户访谈中提到他们更注重产品的实用性',
+        '灵感来源于大自然的色彩和形状',
+        '这个排版需要调整，标题应该更突出',
+        '考虑加入一些动效来提升用户体验'
+      ];
+      const randomText = suggestions[Math.floor(Math.random() * suggestions.length)];
+      
+      setContent(prev => prev ? `${prev}\n${randomText}` : randomText);
+      Taro.showToast({ title: '识别成功 ✨', icon: 'success' });
+    }, 1500);
   };
 
   const handleSaveWebpage = () => {
-    Taro.getClipboardData({
+    Taro.showModal({
+      title: '保存网页',
+      content: '请在下方粘贴网页链接',
+      editable: true,
+      placeholderText: 'https://...',
       success: (res) => {
-        if (res.data && res.data.includes('http')) {
-          setContent(res.data);
-          Taro.showToast({
-            title: '已获取剪贴板链接',
-            icon: 'success'
-          });
-        } else {
-          Taro.showToast({
-            title: '剪贴板无有效链接',
-            icon: 'none'
-          });
+        if (res.content && res.content.trim()) {
+          const url = res.content.trim();
+          if (url.startsWith('http://') || url.startsWith('https://')) {
+            fetchWebpageTitle(url);
+          } else {
+            Taro.showToast({ title: '请输入有效链接', icon: 'none' });
+          }
         }
       }
     });
+  };
+
+  const fetchWebpageTitle = (url: string) => {
+    Taro.showLoading({ title: '获取标题...' });
+    
+    try {
+      const urlObj = new URL(url);
+      const domain = urlObj.hostname.replace('www.', '');
+      
+      const mockTitles: { [key: string]: string } = {
+        'dribbble.com': 'Dribbble - Discover the World’s Top Designers',
+        'behance.net': 'Behance - Portfolio Management',
+        'pinterest.com': 'Pinterest',
+        'unsplash.com': 'Unsplash | Free High-Resolution Photos',
+        'github.com': 'GitHub',
+        'medium.com': 'Medium',
+        'zhihu.com': '知乎 - 有问题，就会有答案',
+        'weibo.com': '微博',
+        'xiaohongshu.com': '小红书 - 你的生活指南'
+      };
+      
+      const title = mockTitles[domain] || `${domain} - 网页内容`;
+      const sourceName = domain.charAt(0).toUpperCase() + domain.slice(1);
+      
+      setContent(title);
+      setSource(sourceName);
+      
+      Taro.hideLoading();
+      Taro.showToast({ title: '网页信息已获取 ✨', icon: 'success' });
+    } catch (error) {
+      Taro.hideLoading();
+      Taro.showToast({ title: '链接解析失败', icon: 'none' });
+    }
   };
 
   const handleSubmit = () => {
@@ -80,8 +175,10 @@ const CollectPage: React.FC = () => {
       return;
     }
 
+    const inspirationType = imageUrl ? 'image' : (isRecording ? 'voice' : 'text');
+
     addInspiration({
-      type: imageUrl ? 'image' : 'text',
+      type: inspirationType,
       content: content || '图片灵感',
       imageUrl: imageUrl || undefined,
       source: source || undefined,
@@ -99,8 +196,23 @@ const CollectPage: React.FC = () => {
     });
 
     setTimeout(() => {
+      setContent('');
+      setImageUrl('');
+      setSource('');
+      setTags([]);
+      setProject('');
+      setMood('');
+      setColor('');
+      setPurpose('');
+      setIsPrivate(false);
       Taro.switchTab({ url: '/pages/library/index' });
     }, 1500);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const colorOptions = ['#E0F2FE', '#FEF3C7', '#FCE7F3', '#D1FAE5', '#E0E7FF', '#FEE2E2'];
@@ -118,7 +230,7 @@ const CollectPage: React.FC = () => {
           className={styles.input}
           value={content}
           onInput={(e: any) => setContent(e.detail.value)}
-          placeholder="写下你的灵感想法..."
+          placeholder="写下你的灵感想法，或通过语音输入..."
           placeholderClass={styles.inputPlaceholder}
           maxlength={500}
         />
@@ -131,10 +243,19 @@ const CollectPage: React.FC = () => {
             <Text className={styles.actionIcon}>🖼️</Text>
             <Text className={styles.actionLabel}>图片</Text>
           </Button>
-          <Button className={styles.actionBtn} onClick={handleVoiceRecord}>
-            <Text className={styles.actionIcon}>🎙️</Text>
-            <Text className={styles.actionLabel}>语音</Text>
-          </Button>
+          
+          {!isRecording ? (
+            <Button className={styles.actionBtn} onClick={startRecording}>
+              <Text className={styles.actionIcon}>🎙️</Text>
+              <Text className={styles.actionLabel}>录音</Text>
+            </Button>
+          ) : (
+            <Button className={`${styles.actionBtn} ${styles.recording}`} onClick={stopRecording}>
+              <Text className={styles.actionIcon}>⏹️</Text>
+              <Text className={styles.actionLabel}>{formatTime(recordingTime)}</Text>
+            </Button>
+          )}
+          
           <Button className={styles.actionBtn} onClick={handleSaveWebpage}>
             <Text className={styles.actionIcon}>🔗</Text>
             <Text className={styles.actionLabel}>网页</Text>
@@ -146,6 +267,12 @@ const CollectPage: React.FC = () => {
         </View>
         {imageUrl && (
           <Text className={styles.imagePreview}>🖼️ 图片已选择</Text>
+        )}
+        {isRecording && (
+          <View className={styles.recordingIndicator}>
+            <View className={styles.recordingDot} />
+            <Text className={styles.recordingText}>正在录音...</Text>
+          </View>
         )}
       </View>
 

@@ -1,5 +1,13 @@
 @use '@/styles/variables.scss' as *;
 
+.canvasContainer {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 750rpx;
+  pointer-events: none;
+}
+
 .container {
   min-height: 100vh;
   background: linear-gradient(180deg, #F0F5FF 0%, $color-bg-page 100%);

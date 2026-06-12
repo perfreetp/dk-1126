@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView } from '@tarojs/components';
+import { View, Text, ScrollView, Canvas } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useInspiration } from '../../store/InspirationContext';
 import styles from './index.module.scss';
@@ -15,6 +15,8 @@ const ProfilePage: React.FC = () => {
 
   const [showModal, setShowModal] = useState<string | null>(null);
   const [randomInspiration, setRandomInspiration] = useState<any>(null);
+  const [canvasHeight, setCanvasHeight] = useState(800);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const stats = useMemo(() => {
     const total = inspirations.length;
@@ -70,23 +72,149 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const generateShareImage = async () => {
+    if (inspirations.length === 0) {
+      Taro.showToast({ title: '没有灵感可分享', icon: 'none' });
+      return;
+    }
+
+    setIsGenerating(true);
+    Taro.showLoading({ title: '正在生成...' });
+
+    try {
+      const ctx = Taro.createCanvasContext('shareCanvas');
+      const systemInfo = Taro.getSystemInfoSync();
+      const canvasWidth = systemInfo.windowWidth * 2;
+      
+      const lineHeight = 80;
+      const headerHeight = 300;
+      const itemHeight = 120;
+      const padding = 40;
+      const content = inspirations.slice(0, 10);
+      
+      const totalHeight = headerHeight + content.length * itemHeight + padding * 2;
+      setCanvasHeight(totalHeight);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      ctx.setFillStyle('#F8FAFC');
+      ctx.fillRect(0, 0, canvasWidth, totalHeight);
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
+      gradient.addColorStop(0, '#6366F1');
+      gradient.addColorStop(1, '#818CF8');
+      ctx.setFillStyle(gradient);
+      ctx.fillRect(0, 0, canvasWidth, headerHeight);
+
+      ctx.setFillStyle('#FFFFFF');
+      ctx.setFontSize(56);
+      ctx.fillText('灵感口袋', padding, 100);
+
+      ctx.setFontSize(32);
+      ctx.fillText(`已收集 ${stats.total} 条灵感 ✨`, padding, 160);
+
+      ctx.setFontSize(28);
+      ctx.fillText(`私密 ${stats.privateCount} 条 | 今日 ${stats.todayCount} 条`, padding, 200);
+
+      ctx.setFillStyle('#F8FAFC');
+      ctx.fillRect(0, headerHeight, canvasWidth, 2);
+
+      ctx.setFillStyle('#1E293B');
+      ctx.setFontSize(28);
+      ctx.fillText('灵感摘要', padding, headerHeight + 60);
+
+      content.forEach((insp, index) => {
+        const y = headerHeight + 100 + index * itemHeight;
+        
+        ctx.setFillStyle('#FFFFFF');
+        ctx.fillRect(padding, y, canvasWidth - padding * 2, itemHeight - 20);
+
+        ctx.setFillStyle('#64748B');
+        ctx.setFontSize(20);
+        const typeIcon = {
+          'text': '✏️',
+          'image': '🖼️',
+          'voice': '🎙️',
+          'webpage': '🔗'
+        }[insp.type] || '💡';
+        ctx.fillText(typeIcon, padding + 20, y + 40);
+
+        ctx.setFillStyle('#1E293B');
+        ctx.setFontSize(24);
+        const text = insp.content.length > 30 ? insp.content.substring(0, 30) + '...' : insp.content;
+        ctx.fillText(text, padding + 60, y + 40);
+
+        if (insp.tags.length > 0) {
+          ctx.setFillStyle('#6366F1');
+          ctx.setFontSize(18);
+          ctx.fillText(`#${insp.tags[0]}`, padding + 60, y + 70);
+        }
+
+        if (insp.source) {
+          ctx.setFillStyle('#94A3B8');
+          ctx.setFontSize(18);
+          ctx.fillText(`来源: ${insp.source}`, padding + 60, y + 95);
+        }
+      });
+
+      ctx.setFillStyle('#94A3B8');
+      ctx.setFontSize(20);
+      ctx.fillText('由灵感口袋生成', padding, totalHeight - 30);
+
+      ctx.draw(true, () => {
+        Taro.canvasToTempFilePath({
+          canvasId: 'shareCanvas',
+          success: (res) => {
+            Taro.hideLoading();
+            setIsGenerating(false);
+            
+            Taro.saveImageToPhotosAlbum({
+              filePath: res.tempFilePath,
+              success: () => {
+                Taro.showToast({ title: '图片已保存到相册 ✨', icon: 'success' });
+                setShowModal(null);
+              },
+              fail: () => {
+                Taro.showToast({ title: '保存失败，请授权', icon: 'none' });
+              }
+            });
+          },
+          fail: (err) => {
+            console.error('[Profile] Canvas to temp file error:', err);
+            Taro.hideLoading();
+            setIsGenerating(false);
+            Taro.showToast({ title: '生成失败', icon: 'none' });
+          }
+        });
+      });
+    } catch (error) {
+      console.error('[Profile] Generate image error:', error);
+      Taro.hideLoading();
+      setIsGenerating(false);
+      Taro.showToast({ title: '生成失败', icon: 'none' });
+    }
+  };
+
   const handleShareLongImage = () => {
-    Taro.showModal({
-      title: '生成分享长图',
-      content: '将把所有灵感生成长图并分享（演示模式）',
-      success: () => {
-        Taro.showToast({ title: '长图生成中... 📱', icon: 'loading' });
-        setTimeout(() => {
-          setShowModal('share');
-        }, 1500);
-      }
-    });
+    if (inspirations.length === 0) {
+      Taro.showToast({ title: '没有灵感可分享', icon: 'none' });
+      return;
+    }
+    setShowModal('share');
   };
 
   const duplicates = useMemo(() => findDuplicates(), [inspirations]);
 
   return (
     <View className={styles.container}>
+      <View class={styles.canvasContainer}>
+        <Canvas
+          canvasId="shareCanvas"
+          style={`width: 750rpx; height: ${canvasHeight}rpx`}
+          type="2d"
+        />
+      </View>
+
       <View className={styles.header}>
         <Text className={styles.title}>我的</Text>
         <Text className={styles.subtitle}>管理你的创意资产 👤</Text>
@@ -265,14 +393,23 @@ const ProfilePage: React.FC = () => {
               <View className={styles.sharePreview}>
                 <Text className={styles.shareTitle}>灵感口袋</Text>
                 <Text className={styles.shareContent}>
-                  我已经收集了 {stats.total} 条灵感 ✨
+                  已收集 {stats.total} 条灵感 ✨
                   {'\n\n'}
                   {inspirations.slice(0, 5).map((insp, i) => (
                     `• ${insp.content.substring(0, 30)}...\n`
                   ))}
                 </Text>
               </View>
-              <Text className={styles.shareBtn}>保存图片</Text>
+              <View
+                className={styles.shareBtn}
+                onClick={generateShareImage}
+              >
+                {isGenerating ? (
+                  <Text>生成中...</Text>
+                ) : (
+                  <Text>保存图片到相册</Text>
+                )}
+              </View>
             </View>
           </View>
         </View>

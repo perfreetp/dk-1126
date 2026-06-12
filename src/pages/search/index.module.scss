@@ -1,0 +1,179 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #F0F5FF 0%, $color-bg-page 100%);
+  padding: $spacing-md;
+}
+
+.header {
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.searchBox {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.searchInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  background: $color-bg-hover;
+  border-radius: $radius-button;
+  padding: 0 $spacing-md;
+  height: 88rpx;
+  margin-bottom: $spacing-md;
+}
+
+.searchIcon {
+  font-size: $font-size-xl;
+  opacity: 0.5;
+}
+
+.searchInput {
+  flex: 1;
+  height: 88rpx;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.searchInput::placeholder {
+  color: $color-text-tertiary;
+}
+
+.clearBtn {
+  @include button-reset;
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  padding: $spacing-xs;
+}
+
+.section {
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.tag {
+  @include button-reset;
+  padding: $spacing-sm $spacing-md;
+  background: $color-bg-card;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  border-radius: $radius-button;
+  border: 2rpx solid $color-border;
+  transition: all $transition-base;
+}
+
+.tag:active {
+  transform: scale(0.95);
+}
+
+.tag.active {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  border-color: $color-primary;
+}
+
+.recentList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.recentItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.recentIcon {
+  font-size: $font-size-xl;
+  opacity: 0.7;
+}
+
+.recentContent {
+  flex: 1;
+}
+
+.recentText {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.recentTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+.results {
+  min-height: 400rpx;
+}
+
+.resultsTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 2;
+  color: $color-text-tertiary;
+}
+
+.emptyIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-md;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+  text-align: center;
+}
+
+.inspirationList {
+  display: flex;
+  flex-direction: column;
+}

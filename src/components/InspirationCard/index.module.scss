@@ -1,0 +1,113 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.typeTag {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-primary;
+}
+
+.typeText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.lockIcon,
+.deleteBtn {
+  font-size: $font-size-lg;
+  opacity: 0.7;
+  transition: opacity $transition-fast;
+}
+
+.lockIcon:active,
+.deleteBtn:active {
+  opacity: 1;
+}
+
+.image {
+  width: 100%;
+  height: 300rpx;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+}
+
+.content {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-loose;
+  margin-bottom: $spacing-sm;
+}
+
+.source {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  display: block;
+  margin-bottom: $spacing-sm;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.tag {
+  background: $color-bg-hover;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding-top: $spacing-sm;
+  border-top: 1rpx solid $color-divider;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.metaLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.metaValue {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.colorDot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: $radius-round;
+  margin-left: auto;
+}

@@ -1,0 +1,81 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-float;
+}
+
+.section {
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.sectionTitle {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.scrollContainer {
+  width: 100%;
+}
+
+.items {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.filterItem {
+  @include button-reset;
+  min-width: 120rpx;
+  height: 64rpx;
+  padding: 0 $spacing-md;
+  background: $color-bg-hover;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  border-radius: $radius-button;
+  border: 2rpx solid transparent;
+  transition: all $transition-base;
+}
+
+.filterItem.active {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  border-color: $color-primary;
+}
+
+.filterItem:active {
+  transform: scale(0.95);
+}
+
+.colorItem {
+  position: relative;
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.colorDot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: $radius-round;
+  border: 2rpx solid $color-border;
+}
+
+.checkMark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: bold;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,53 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  width: 100%;
+}
+
+.tagsWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  align-items: center;
+  min-height: 80rpx;
+  padding: $spacing-sm;
+  background: $color-bg-card;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-md;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-button;
+  white-space: nowrap;
+}
+
+.removeBtn {
+  font-size: $font-size-lg;
+  font-weight: bold;
+  margin-left: $spacing-xs;
+  opacity: 0.8;
+  transition: opacity $transition-fast;
+}
+
+.removeBtn:active {
+  opacity: 1;
+}
+
+.input {
+  flex: 1;
+  min-width: 200rpx;
+  height: 64rpx;
+  font-size: $font-size-md;
+}
+
+.placeholder {
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}

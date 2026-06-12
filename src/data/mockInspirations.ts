@@ -1,0 +1,133 @@
+import { Inspiration } from '../types/inspiration';
+
+export const mockInspirations: Inspiration[] = [
+  {
+    id: '1',
+    type: 'text',
+    content: '设计要有呼吸感，留白是一种艺术',
+    tags: ['设计', '留白', '美学'],
+    project: '品牌重塑',
+    mood: 'calm',
+    color: '#E0F2FE',
+    purpose: '视觉优化',
+    isPrivate: false,
+    createdAt: '2026-06-10T10:00:00Z',
+    updatedAt: '2026-06-10T10:00:00Z'
+  },
+  {
+    id: '2',
+    type: 'image',
+    content: '极简主义咖啡店设计灵感',
+    imageUrl: 'https://picsum.photos/id/225/300/300',
+    tags: ['咖啡店', '极简', '室内设计'],
+    project: '商业空间',
+    mood: 'creative',
+    color: '#FEF3C7',
+    purpose: '空间设计',
+    isPrivate: false,
+    createdAt: '2026-06-09T15:30:00Z',
+    updatedAt: '2026-06-09T15:30:00Z'
+  },
+  {
+    id: '3',
+    type: 'text',
+    content: '色彩心理学：蓝色代表信任和专业，橙色代表活力和创意',
+    tags: ['色彩', '心理学', '品牌'],
+    project: '色彩研究',
+    mood: 'serious',
+    purpose: '品牌策划',
+    isPrivate: false,
+    createdAt: '2026-06-08T09:15:00Z',
+    updatedAt: '2026-06-08T09:15:00Z'
+  },
+  {
+    id: '4',
+    type: 'webpage',
+    content: 'Dribbble - Discover the World’s Top Designers & Creative Professionals',
+    source: 'dribbble.com',
+    tags: ['UI设计', '灵感', '作品集'],
+    project: '作品集',
+    mood: 'energetic',
+    color: '#FCE7F3',
+    purpose: '界面设计',
+    isPrivate: false,
+    createdAt: '2026-06-07T14:20:00Z',
+    updatedAt: '2026-06-07T14:20:00Z'
+  },
+  {
+    id: '5',
+    type: 'text',
+    content: '好的文案不在于字多少，而在于是否打动人心',
+    tags: ['文案', '写作', '情感'],
+    project: '文案库',
+    mood: 'romantic',
+    purpose: '文案创作',
+    isPrivate: true,
+    createdAt: '2026-06-06T11:45:00Z',
+    updatedAt: '2026-06-06T11:45:00Z'
+  },
+  {
+    id: '6',
+    type: 'image',
+    content: '自然光线与室内空间的完美结合',
+    imageUrl: 'https://picsum.photos/id/235/300/300',
+    tags: ['自然光', '空间', '氛围'],
+    project: '商业空间',
+    mood: 'calm',
+    color: '#D1FAE5',
+    purpose: '空间设计',
+    isPrivate: false,
+    createdAt: '2026-06-05T16:00:00Z',
+    updatedAt: '2026-06-05T16:00:00Z'
+  },
+  {
+    id: '7',
+    type: 'text',
+    content: '字体是设计中最强大的工具，选择正确的字体可以改变一切',
+    tags: ['字体', '排版', '设计基础'],
+    project: '品牌重塑',
+    mood: 'serious',
+    purpose: '视觉设计',
+    isPrivate: false,
+    createdAt: '2026-06-04T10:30:00Z',
+    updatedAt: '2026-06-04T10:30:00Z'
+  },
+  {
+    id: '8',
+    type: 'voice',
+    content: '用户访谈记录：年轻用户更喜欢简约风格，老年用户更注重功能性',
+    tags: ['用户研究', '访谈', '洞察'],
+    project: '用户调研',
+    mood: 'energetic',
+    purpose: '产品策划',
+    isPrivate: false,
+    createdAt: '2026-06-03T13:20:00Z',
+    updatedAt: '2026-06-03T13:20:00Z'
+  },
+  {
+    id: '9',
+    type: 'image',
+    content: '日式庭院设计，禅意与自然的融合',
+    imageUrl: 'https://picsum.photos/id/26/300/300',
+    tags: ['日式', '庭院', '禅意'],
+    project: '商业空间',
+    mood: 'calm',
+    color: '#E0E7FF',
+    purpose: '景观设计',
+    isPrivate: false,
+    createdAt: '2026-06-02T15:45:00Z',
+    updatedAt: '2026-06-02T15:45:00Z'
+  },
+  {
+    id: '10',
+    type: 'text',
+    content: '创意就是将不同的元素以新的方式组合在一起',
+    tags: ['创意', '方法论', '思维'],
+    project: '创意方法',
+    mood: 'creative',
+    purpose: '思维训练',
+    isPrivate: false,
+    createdAt: '2026-06-01T09:00:00Z',
+    updatedAt: '2026-06-01T09:00:00Z'
+  }
+];
